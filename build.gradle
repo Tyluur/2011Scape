@@ -35,6 +35,7 @@ allprojects {
         implementation "io.github.microutils:kotlin-logging:$kloggingVersion"
         implementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
         implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$yamlVersion"
+        implementation "com.michael-bull.kotlin-inline-logger:kotlin-inline-logger:1.0.4"
 
         implementation "de.mkammerer:argon2-jvm:2.11"
 
@@ -86,8 +87,8 @@ task packageServer(type: Zip) {
         rename 'first-launch-template', 'first-launch'
     }
 
-    from ('gradle/') {
-        into ('gradle')
+    from('gradle/') {
+        into('gradle')
     }
 
     from('data/') {
