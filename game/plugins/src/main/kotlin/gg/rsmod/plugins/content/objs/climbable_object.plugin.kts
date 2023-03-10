@@ -1,5 +1,7 @@
 package gg.rsmod.plugins.content.objs
 
+import gg.rsmod.game.model.collision.ObjectType
+
 private val CLIMB_UP_ANIMATION = 828
 
 private val CLIMB_DOWN_ANIMATION = 827
@@ -58,7 +60,7 @@ val ids = arrayOf(
     1765,
     1767,
     2020,
-    2113,
+//    2113,
     2147,
     2174,
     2175,
@@ -1233,30 +1235,46 @@ val ids = arrayOf(
     61551
 )
 
-
-/*for (id in 0..world.definitions.getCount(ObjectDef::class.java)) {
+for (id in ids) {
+    if (id != 36773) {
+        continue
+    }
     for (field in climbableFields) {
-        on_obj_option(id, field) { ->
-            val gameObject = player.getInteractingGameObj()
-            val optionIndex = player.getInteractingOption()
+        if (if_obj_has_option(obj = id, option = field)) {
+            println("$id has field[$field]")
 
-            player.queue(TaskPriority.STRONG) {
-                val objectDef = world.definitions.get(ObjectDef::class.java, id)
-                val options = objectDef.options
+            val option = field.lowercase()
 
-                val option = options[optionIndex]
+            println("about to bind option [$option], [$id, $field]")
 
-                if (option != null) {
-                    println("object=$gameObject")
-                    climbLadder(this, gameObject, option)
-                } else {
-                    println("unable to find option for object: $gameObject")
+            on_obj_option(obj = id, option = option) {
+                player.queue {
+                    println("queue estart")
+
+                    val gameObject = player.getInteractingGameObj()
+                    val optionIndex = player.getInteractingOption()
+
+                    println("gameObject=$gameObject, optionIndex=$optionIndex")
+
+                    val objectDef = world.definitions.get(ObjectDef::class.java, id)
+                    val options = objectDef.options
+
+                    val option = options[optionIndex]
+
+                    if (option != null) {
+                        climbLadder(this, gameObject, option)
+                    } else {
+                        println("unable to find option for object: $gameObject")
+                    }
+
                 }
-
+                println("$id bound field[$field]")
             }
+        } else {
+            println("$id skipped field[$field]")
         }
     }
-}*/
+}
 
 /**
  * The base function for climbing
@@ -1327,25 +1345,27 @@ fun getTargetObject(it: QueueTask, source: GameObject, down: Boolean): GameObjec
     // the modification to apply on height in order to find the target object
     val mod = if (down) -1 else 1
 
+    val sourceType = ObjectType.values().firstOrNull { it.value == source.type } ?: return null
+
     // the destination object we're looking to find
     var gameObject: GameObject? =
-        world.getObject(p.tile.transform(0, if (mod == -1) mod * -6400 else 0, if (mod == -1) 0 else mod), source.type)
+        world.getObject(p.tile.transform(0, if (mod == -1) mod * -6400 else 0, if (mod == -1) 0 else mod), sourceType)
 
     val sourceDef = world.definitions.get(ObjectDef::class.java, source.id)
     val destinationDef = world.definitions.get(ObjectDef::class.java, gameObject?.id ?: -1)
 
     if (gameObject == null || !isLadder(destinationDef)) {
         if (gameObject != null && destinationDef.name == sourceDef.name) {
-            gameObject = world.getObject(gameObject.tile.transform(0, 0, mod), source.type)
+            gameObject = world.getObject(gameObject.tile.transform(0, 0, mod), sourceType)
             if (gameObject != null) {
                 return gameObject
             }
         }
-        gameObject = findLadder(it, source.tile.transform(0, 0, mod), source.type)
+        gameObject = findLadder(it, source.tile.transform(0, 0, mod), sourceType)
         if (gameObject == null) {
-            gameObject = world.getObject(source.tile.transform(0, mod * -6400, 0), source.type)
+            gameObject = world.getObject(source.tile.transform(0, mod * -6400, 0), sourceType)
             if (gameObject == null) {
-                gameObject = findLadder(it, source.tile.transform(0, mod * -6400, 0), source.type)
+                gameObject = findLadder(it, source.tile.transform(0, mod * -6400, 0), sourceType)
             }
         }
     }
@@ -1375,7 +1395,7 @@ fun isLadder(def: ObjectDef): Boolean {
  * The location.
  * @return The ladder.
  */
-fun findLadder(it: QueueTask, l: Tile, type: Int): GameObject? {
+fun findLadder(it: QueueTask, l: Tile, type: ObjectType): GameObject? {
     val world = it.player.world
     for (x in -5..5) {
         for (y in -5..5) {
