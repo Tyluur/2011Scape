@@ -6,7 +6,7 @@ val stairs = arrayOf(
     Objs.STAIRCASE_36776,
     Objs.STAIRCASE_36775,
     Objs.STAIRCASE_36774,
-    Objs.STAIRCASE_36773,
+ //   Objs.STAIRCASE_36773,
     Objs.STAIRCASE_12538,
     Objs.STAIRCASE_12537,
     Objs.STAIRCASE_12536,
